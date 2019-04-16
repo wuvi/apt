@@ -1,0 +1,203 @@
+﻿apt-get update
+
+apt-get update时卡在 waiting for headers，等了好久，最后报出Hash Sum mismatch的错误 
+解决方法： 
+rm /var/lib/apt/lists/* 
+rm /var/lib/apt/lists/partial/* 
+apt-get update
+
+apt-get install xinit
+
+安装图形界面
+atp-get install ubuntu-desktop
+
+添加普通用户：hadoop
+sudo useradd -m hadoop -s /bin/bash
+sudo passwd hadoop
+sudo adduser hadoop sudo
+
+hadoop用户安装vim
+su hadoop
+sudo apt-get update
+sudo apt-get install vim
+
+
+hadoop登陆图形界面，安装汉语支持
+
+firefox无法正常启动，尝试：
+sudo chown –R hadoop:hadoop ~/.mozilla/
+sudo chown –R hadoop:hadoop ~/.cache/
+
+
+安装sougou拼音
+sudo add-apt-repository ppa:fcitx-team/nightly
+sudo apt-get update
+sudo apt-get –f install
+sudo apt-get install fcitx
+sudo apt-get install fcitx-conffig-gtk
+sudo apt-get install fcitx-table-all
+sudo apt-get install im-switch (im-config)
+
+sudo dpkg –i souguopinyin.deb
+
+
+
+安装VNC服务器并配置
+apt-get install vnc4server
+apt-get install xfce4
+apt-get install xfce4如果安装不上，就 
+apt-get update 
+apt-get upgrade更新一下，一般是没有问题的
+vi ~/.vnc/xstartup
+
+#!/bin/sh
+
+# Uncomment the following two lines for normal desktop:
+# unset SESSION_MANAGER
+# exec /etc/X11/xinit/xinitrc
+#xrdb $HOME/.Xresources
+#xsettroot -solid grey
+#startxfce4&
+
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+
+x-terminal-emulator -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+#x-window-manager &
+
+sesion-manager & xfdesktop & xfce4-panel &
+xfce4-menu-plugin &
+xfsettingsd &
+xfconfd &
+xfwm4 &
+
+
+
+1、关闭ubuntu的防火墙 
+      ufw disable
+开启防火墙
+ufw enable
+2、卸载了iptables
+       apt-get remove iptables
+3、关闭ubuntu中的防火墙的其余命令
+        iptables -P INPUT ACCEPT
+        iptables -P FORWARD ACCEPT
+        iptables -P OUTPUT ACCEPT
+        iptables -F
+在VNC中使用xfce桌面无法打开终端解决方案
+在 Settings Manager -> Preferred Applications 中重新设置默认终端
+（设置->首选应用程序  实用程序：终端模拟器->X终端）
+
+ 
+
+
+
+Jupyter notebook 远程访问
+1. 生成一个 notebook 配置文件
+默认情况下，配置文件 ~/.jupyter/jupyter_notebook_config.py 并不存在，需要自行创建。使用下列命令生成配置文件：
+jupyter notebook --generate-config
+如果是 root 用户执行上面的命令，会发生一个问题：
+Running as root it not recommended. Use --allow-root to bypass.
+提示信息很明显，root 用户执行时需要加上 --allow-root 选项。
+jupyter notebook --generate-config --allow-config
+执行成功后，会出现下面的信息：
+Writing default config to: /root/.jupyter/jupyter_notebook_config.py
+2. 生成密码
+自动生成
+从 jupyter notebook 5.0 版本开始，提供了一个命令来设置密码：jupyter notebook password，生成的密码存储在 jupyter_notebook_config.json。
+$ jupyter notebook password
+Enter password:  ****
+Verify password: ****
+[NotebookPasswordApp] Wrote hashed password to /Users/you/.jupyter/jupyter_notebook_config.json
+手动生成
+除了使用提供的命令，也可以通过手动安装，我是使用的手动安装，因为jupyter notebook password出来一堆内容，没耐心看。打开 ipython 执行下面内容：
+In [1]: from notebook.auth import passwd
+In [2]: passwd()
+Enter password:
+Verify password:
+Out[2]: 'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
+sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed 这一串就是要在 jupyter_notebook_config.py 添加的密码。
+c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
+3. 修改配置文件
+在 jupyter_notebook_config.py 中找到下面的行，取消注释并修改。
+c.NotebookApp.ip='*'
+c.NotebookApp.password = u'sha:ce...刚才复制的那个密文'
+c.NotebookApp.open_browser = False
+c.NotebookApp.port =8888 #可自行指定一个端口, 访问时使用该端口
+以上设置完以后就可以在服务器上启动 jupyter notebook，jupyter notebook, root 用户使用 jupyter notebook --allow-root。打开 IP:指定的端口, 输入密码就可以访问了。
+
+
+在VNC中Xfce4中Tab键失效的解决方法
+在图形窗口中修改的方法
+•	菜单栏 → 设置 → 窗口设置 。打开窗口设置对话框。
+ 
+•	在窗口管理器中选择快捷键选项卡（Key） → Switch window for same 
+application
+•	将其快捷键清空，关闭窗口管理器。
+•	这种方法的好处：不需要重启，即可以解决问题。
+
+
+
+vnc viewer中开启剪切板复制内容到ubuntu系统
+
+vncconfig -nowin&
+autocutsel -f
+
+如果想让他以后台进程形式运行，填上-f参数即可。
+如果没有安装这个工具，会提示让你安装。
+sudo apt install autocutsel
+
+vncserver too many security failures
+vncconfig -display :1 -set BlacklistTimeout=600000000000 -set BlacklistThreshold=6
+
+需启动的程序：
+Jupyter notebook
+nohup jupyter notebook > jnotebook.out 2>&1 &
+
+
+Vncserver :1
+
+vncconfig -nowin&
+autocutsel -f
+
+
+
+本机安装pyecharts
+conda install tensorflow
+python -m pip install pip-18.0-py2.py3-none-any.whl	(可先尝试：pip install –upgrade pip)
+pip install pyecharts-0.1.9.4-py2.py3-none-any.whl
+（https://pypi.org/project/pyecharts）
+
+
+
+
+
+安装jieba
+下载jieba压缩包
+将压缩包解压到anaconda的pkgs目录下
+cd anaconda3/pkgs/jieba-0.39进入pkgs目录
+python setup.py install即可完成安装
+
+
+ubuntu16.04 安装配置python3.6
+sudo add-apt-repository ppa:jonathonf/python-3.6
+sudo apt-get update
+sudo apt-get install python3.6
+调整Python3的优先级，使得3.6优先级较高
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 2
+更改默认值，python默认为Python2，现在修改为Python3
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 100
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 150
+如果要切换到Python2，执行：
+sudo update-alternatives --config python
+
+
+
+
+
+
+
+
